@@ -92,7 +92,7 @@ func (w *output) Byte(b byte) {
 }
 
 func main() {
-	goroutines, err := stack.ParseDump(os.Stdin, ioutil.Discard)
+	goroutines, err := stack.ParseDump(os.Stdin, ioutil.Discard, true)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -110,16 +110,16 @@ func main() {
 	edges := make(map[edge]int)
 	max := 1
 
-	for _, g := range goroutines {
+	for _, g := range goroutines.Goroutines {
 		var lastNode *node
 		for _, c := range g.Stack.Calls {
 			var (
 				id int
 				ok bool
 			)
-			if id, ok = sourceMap[c.FullSourceLine()]; !ok {
+			if id, ok = sourceMap[c.FullSrcLine()]; !ok {
 				id = len(nodes)
-				sourceMap[c.FullSourceLine()] = id
+				sourceMap[c.FullSrcLine()] = id
 				nodes = append(nodes, node{
 					ID:     id,
 					Label:  c.Func.PkgDotName(),
@@ -141,7 +141,7 @@ func main() {
 		}
 	}
 
-	total := len(goroutines)
+	total := len(goroutines.Goroutines)
 
 	for _, n := range nodes {
 		label := fmt.Sprintf("%s\n%d of %d (%0.2f%%)", n.Label, n.Weight, total, float64(n.Weight)/float64(total)*100)
